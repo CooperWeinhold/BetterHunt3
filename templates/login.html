@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="p-4 bg-black rounded-4 border border-secondary shadow-sm">
+        <h1 class="h4 mb-3">Log In</h1>
+        <form method="post" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            {{ form.email.label(class_='form-label') }}
+            {{ form.email(class_='form-control bg-dark text-light border-secondary') }}
+          </div>
+          <div class="mb-3">
+            {{ form.password.label(class_='form-label') }}
+            {{ form.password(class_='form-control bg-dark text-light border-secondary') }}
+          </div>
+          {{ form.submit(class_='btn btn-success') }}
+          <a href="{{ url_for('register') }}" class="btn btn-link text-decoration-none">Create account</a>
+        </form>
+        <div class="small text-secondary mt-3">Try demo: <code>demo@betterhunt.app</code> / <code>demo</code></div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

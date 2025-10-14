@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="bg-black rounded-4 border border-secondary shadow-sm">
+    <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center flex-wrap">
+      <div class="d-flex gap-2 align-items-center">
+        <span class="fw-semibold">Map Tools:</span>
+        <button id="locateBtn" class="btn btn-outline-light btn-sm">My Location</button>
+        <button id="waypointBtn" class="btn btn-outline-light btn-sm">Drop Waypoint</button>
+        <button id="drawPolyBtn" class="btn btn-outline-light btn-sm">Draw Boundary</button>
+        <button id="finishPolyBtn" class="btn btn-success btn-sm d-none">Finish</button>
+        <button id="clearBtn" class="btn btn-outline-danger btn-sm">Clear</button>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <label class="me-1 small">Basemap:</label>
+        <select id="basemapSelect" class="form-select form-select-sm bg-dark text-light border-secondary">
+          <option value="sat">Satellite</option>
+          <option value="topo">Topo</option>
+          <option value="osm">Streets</option>
+        </select>
+      </div>
+    </div>
+    <div id="map" style="height: 70vh; border-bottom-left-radius:1rem; border-bottom-right-radius:1rem;"></div>
+  </div>
+
+  <div class="row mt-3 g-3">
+    <div class="col-lg-6">
+      <div class="p-3 bg-black rounded-4 border border-secondary shadow-sm">
+        <h2 class="h6">Saved Properties (demo)</h2>
+        <ul class="small mb-0" id="propertyList"></ul>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="p-3 bg-black rounded-4 border border-secondary shadow-sm">
+        <h2 class="h6">Notes</h2>
+        <p class="small opacity-75 mb-0">This is a Phase 1 demo with client-side storage. In Phase 2 we’ll persist to a DB and add seasons/permits overlays.</p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    const PROPERTIES = {{ properties|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

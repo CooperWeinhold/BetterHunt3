@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="row g-4">
+    <div class="col-md-7">
+      <div class="p-4 bg-black rounded-4 border border-secondary shadow-sm">
+        <h1 class="h3 mb-3">Plan • Hunt • Log</h1>
+        <p class="opacity-75">BetterHunt gives you property boundaries, layers (satellite/topo), waypoint tools, and quick access to seasons & permits—all in one place. Inspired by OnX, tailored for your class project.</p>
+        <a href="{{ url_for('map_view') }}" class="btn btn-success">Open Map</a>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="p-4 bg-black rounded-4 border border-secondary shadow-sm">
+        <h2 class="h5">Quick Start</h2>
+        <ol class="small opacity-75 mb-0">
+          <li>Go to <strong>Map</strong> and allow location.</li>
+          <li>Toggle <em>Satellite</em> / <em>Topo</em>.</li>
+          <li>Drop a waypoint or draw a boundary.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+{% endblock %}
