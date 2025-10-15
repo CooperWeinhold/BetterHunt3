@@ -1,4 +1,6 @@
 import os
+import json
+from pathlib import Path
 from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_wtf import FlaskForm
@@ -111,6 +113,14 @@ def map_view():
     ]
     return render_template('map.html', properties=example_properties)
 
+@app.route('/seasons')
+def seasons():
+    data_path = Path(__file__).with_name('data') / 'seasons_ks.json'
+    seasons = []
+    if data_path.exists():
+        with open(data_path, 'r', encoding='utf-8') as f:
+            seasons = json.load(f)
+    return render_template('seasons.html', seasons=seasons)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

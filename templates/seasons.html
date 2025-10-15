@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-4 bg-black rounded-4 border border-secondary shadow-sm">
+  <div class="d-flex flex-wrap gap-3 align-items-end">
+    <div>
+      <h1 class="h4 mb-0">Kansas Seasons & Regulations (Demo)</h1>
+      <div class="small text-secondary">Data file: <code>data/seasons_ks.json</code> — verify dates on ksoutdoors.gov</div>
+    </div>
+    <div class="ms-auto"></div>
+  </div>
+
+  <hr class="border-secondary">
+
+  <!-- Filters -->
+  <form id="filters" class="row g-2">
+    <div class="col-12 col-md-3">
+      <label class="form-label small">Species</label>
+      <select id="fSpecies" class="form-select form-select-sm bg-dark text-light border-secondary">
+        <option value="">All</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label small">Method / Weapon</label>
+      <select id="fMethod" class="form-select form-select-sm bg-dark text-light border-secondary">
+        <option value="">All</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small">Start on/after</label>
+      <input id="fStart" type="date" class="form-control form-control-sm bg-dark text-light border-secondary">
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small">Ends on/before</label>
+      <input id="fEnd" type="date" class="form-control form-control-sm bg-dark text-light border-secondary">
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label small">Unit/Notes search</label>
+      <input id="fText" type="text" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="e.g., Unit 7 or High Plains">
+    </div>
+  </form>
+
+  <div class="table-responsive mt-3">
+    <table class="table table-dark table-hover align-middle">
+      <thead>
+        <tr class="text-secondary">
+          <th>Species</th>
+          <th>Season</th>
+          <th>Method</th>
+          <th>Units</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Bag/Permit</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody id="seasonRows"></tbody>
+    </table>
+  </div>
+
+  <div class="small text-secondary">
+    <strong>Disclaimer:</strong> This page is a convenience view. Always confirm official dates, units, and limits on ksoutdoors.gov before hunting.
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Data injected by Flask:
+  const SEASONS = {{ seasons|tojson }};
+
+  // Build distinct lists for filters
+  const speciesSet = new Set(), methodSet = new Set();
+  SEASONS.forEach(s => { speciesSet.add(s.species); methodSet.add(s.method); });
+
+  const fSpecies = document.getElementById('fSpecies');
+  const fMethod  = document.getElementById('fMethod');
+  [...speciesSet].sort().forEach(v => fSpecies.insertAdjacentHTML('beforeend', `<option>${v}</option>`));
+  [...methodSet].sort().forEach(v => fMethod.insertAdjacentHTML('beforeend', `<option>${v}</option>`));
+
+  const fStart = document.getElementById('fStart');
+  const fEnd   = document.getElementById('fEnd');
+  const fText  = document.getElementById('fText');
+  const rowsEl = document.getElementById('seasonRows');
+
+  function withinDateRange(s) {
+    const startOk = !fStart.value || (s.start_date && s.start_date >= fStart.value);
+    const endOk   = !fEnd.value   || (s.end_date   && s.end_date   <= fEnd.value);
+    return startOk && endOk;
+  }
+
+  function textMatch(s) {
+    const q = fText.value.trim().toLowerCase();
+    if (!q) return true;
+    const hay = `${s.units||''} ${s.notes||''} ${s.season_name||''}`.toLowerCase();
+    return hay.includes(q);
+  }
+
+  function render() {
+    const spec = fSpecies.value;
+    const meth = fMethod.value;
+    const filtered = SEASONS.filter(s =>
+      (!spec || s.species === spec) &&
+      (!meth || s.method === meth) &&
+      withinDateRange(s) &&
+      textMatch(s)
+    );
+
+    rowsEl.innerHTML = filtered.map(s => `
+      <tr>
+        <td>${s.species||''}</td>
+        <td>${s.season_name||''}</td>
+        <td>${s.method||''}</td>
+        <td>${s.units||''}</td>
+        <td>${s.start_date||''}</td>
+        <td>${s.end_date||''}</td>
+        <td><div class="small">${s.bag_limit||''}<br><span class="text-secondary">${s.permit||''}</span></div></td>
+        <td class="small">${s.notes||''}</td>
+      </tr>
+    `).join('');
+  }
+
+  [fSpecies, fMethod, fStart, fEnd, fText].forEach(el => el.addEventListener('input', render));
+  render();
+</script>
+{% endblock %}
