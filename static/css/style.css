@@ -4,3 +4,9 @@
 .leaflet-popup-content-wrapper, .leaflet-control-layers-expanded { background:#0f0f0f; color:#eaeaea; }
 .leaflet-bar a, .leaflet-control-zoom a { background:#0f0f0f; color:#eaeaea; border-color:#333; }
 .leaflet-container { background:#0b0b0b; }
+.parcel-owner-label { pointer-events: none; }
+.parcel-owner-label div {
+  line-height: 1.05;
+  padding: 0 4px;
+}
+

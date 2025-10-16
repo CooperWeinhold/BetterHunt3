@@ -1,48 +1,73 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="bg-black rounded-4 border border-secondary shadow-sm">
-<div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center flex-wrap">
-<div class="d-flex gap-2 align-items-center">
-<span class="fw-semibold">Map Tools:</span>
-<button id="locateBtn" class="btn btn-outline-light btn-sm">My Location</button>
-<button id="waypointBtn" class="btn btn-outline-light btn-sm">Drop Waypoint</button>
-<button id="drawPolyBtn" class="btn btn-outline-light btn-sm">Draw Boundary</button>
-<button id="finishPolyBtn" class="btn btn-success btn-sm d-none">Finish</button>
-<button id="clearBtn" class="btn btn-outline-danger btn-sm">Clear</button>
-</div>
-<div class="d-flex gap-2 align-items-center">
-<label class="me-1 small">Basemap:</label>
-<select id="basemapSelect" class="form-select form-select-sm bg-dark text-light border-secondary">
-<option value="sat">Satellite</option>
-<option value="topo">Topo</option>
-<option value="osm">Streets</option>
-</select>
-</div>
-</div>
-<div id="map" style="height: 70vh; border-bottom-left-radius:1rem; border-bottom-right-radius:1rem;"></div>
-</div>
+  <div class="bg-black rounded-4 border border-secondary shadow-sm">
+    <!-- Toolbar -->
+    <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center flex-wrap">
+      <div class="d-flex gap-2 align-items-center">
+        <span class="fw-semibold">Map Tools:</span>
+        <button id="locateBtn" class="btn btn-outline-light btn-sm">My Location</button>
+        <button id="waypointBtn" class="btn btn-outline-light btn-sm">Drop Waypoint</button>
+        <button id="drawPolyBtn" class="btn btn-outline-light btn-sm">Draw Boundary</button>
+        <button id="finishPolyBtn" class="btn btn-success btn-sm d-none">Finish</button>
+        <button id="clearBtn" class="btn btn-outline-danger btn-sm">Clear</button>
+      </div>
 
+      <div class="d-flex gap-3 align-items-center">
+        <div class="d-flex gap-2 align-items-center">
+          <label class="me-1 small">Basemap:</label>
+          <select id="basemapSelect" class="form-select form-select-sm bg-dark text-light border-secondary">
+            <option value="sat">Satellite</option>
+            <option value="topo">Topo</option>
+            <option value="osm">Streets</option>
+          </select>
+        </div>
 
-<div class="row mt-3 g-3">
-<div class="col-lg-6">
-<div class="p-3 bg-black rounded-4 border border-secondary shadow-sm">
-<h2 class="h6">Saved Properties (demo)</h2>
-<ul class="small mb-0" id="propertyList"></ul>
-</div>
-</div>
-<div class="col-lg-6">
-<div class="p-3 bg-black rounded-4 border border-secondary shadow-sm">
-<h2 class="h6">Notes</h2>
-<p class="small opacity-75 mb-0">This is a Phase 1 demo with client-side storage. In Phase 2 we’ll persist to a DB and add seasons/permits overlays.</p>
-</div>
-</div>
-</div>
+        <div class="d-flex gap-3 align-items-center">
+          <span class="small">Layers:</span>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="lyrPublic" checked>
+            <label class="form-check-label small" for="lyrPublic">Public Lands</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="lyrState" checked>
+            <label class="form-check-label small" for="lyrState">State Parks/Lakes</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="lyrWiha" checked>
+            <label class="form-check-label small" for="lyrWiha">WIHA (Walk-In)</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map" style="height: 70vh; border-bottom-left-radius:1rem; border-bottom-right-radius:1rem;"></div>
+  </div>
+
+  <!-- Optional info row -->
+  <div class="row mt-3 g-3">
+    <div class="col-lg-6">
+      <div class="p-3 bg-black rounded-4 border border-secondary shadow-sm">
+        <h2 class="h6">Notes</h2>
+        <p class="small opacity-75 mb-0">
+          Public land and WIHA data are shown from authoritative ArcGIS services.
+          Always verify access rules and seasonal restrictions posted on-site or on state websites.
+        </p>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="p-3 bg-black rounded-4 border border-secondary shadow-sm">
+        <h2 class="h6">Legend</h2>
+        <ul class="small mb-0">
+          <li><span style="display:inline-block;width:12px;height:12px;background:#3ddc97;opacity:.25;border:1px solid #3ddc97;margin-right:.4rem;vertical-align:middle;"></span> Public Lands (federal/state/local)</li>
+          <li><span style="display:inline-block;width:12px;height:12px;background:#1e88e5;opacity:.20;border:1px solid #1e88e5;margin-right:.4rem;vertical-align:middle;"></span> State Parks & Lakes</li>
+          <li><span style="display:inline-block;width:12px;height:12px;background:#ffca28;opacity:.25;border:1px solid #ffca28;margin-right:.4rem;vertical-align:middle;"></span> WIHA — Walk-In Hunting Access</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
-
 {% block scripts %}
-<script>
-const PROPERTIES = {{ properties|tojson }};
-</script>
-<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 {% endblock %}
