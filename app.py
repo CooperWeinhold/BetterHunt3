@@ -8,6 +8,8 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length, Email
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from flask import request, jsonify, render_template
+from utils.weather import get_weather, geocode_place
 from flask_login import (
     LoginManager, login_user, login_required,
     logout_user, current_user, UserMixin
@@ -121,6 +123,33 @@ def seasons():
         with open(data_path, 'r', encoding='utf-8') as f:
             seasons = json.load(f)
     return render_template('seasons.html', seasons=seasons)
+
+@app.route('/weather')
+def weather_page():
+    return render_template('weather.html')
+
+@app.route('/api/weather')
+def weather_api():
+    lat = request.args.get('lat')
+    lon = request.args.get('lon')
+    q = request.args.get('q')
+
+    if not (lat and lon):
+        if not q:
+            return jsonify({'error': 'Provide lat/lon or q'}), 400
+        geo = geocode_place(q)
+        if not geo:
+            return jsonify({'error': 'Location not found'}), 404
+        lat, lon, name = geo['lat'], geo['lon'], geo['name']
+    else:
+        name = None
+
+    data = get_weather(lat, lon)
+    if 'error' in data:
+        return jsonify(data), 502
+    if name:
+        data['resolved_name'] = name
+    return jsonify(data)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

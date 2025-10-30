@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-4">
+  <h2 class="text-center mb-4">Weather</h2>
+
+  <div class="row g-3 align-items-stretch">
+    <div class="col-lg-6">
+      <input id="locationInput" class="form-control" placeholder="Enter city or ZIP">
+    </div>
+    <div class="col-lg-3 d-grid">
+      <button id="searchBtn" class="btn btn-primary">Search</button>
+    </div>
+    <div class="col-lg-3 d-grid">
+      <button id="geoBtn" class="btn btn-secondary">Use My Location</button>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <h4 class="text-light mb-3">7-Day Forecast</h4>
+    <div id="weekRow" class="row g-3"></div>
+  </div>
+
+  <div id="weatherResult" class="card p-3 shadow-sm mt-4" style="display:none;">
+    <h4 id="currentTitle">Your Location</h4>
+    <p id="temp">—</p>
+    <p id="wind">—</p>
+  </div>
+</div>
+
+<style>
+  body { color: #f8f9fa; }
+  .wx-card { border-radius: 1rem; background-color: #212529; color: #f8f9fa; }
+  .wx-icon { font-size: 2rem; line-height: 1; }
+  .wx-hi { font-weight: 700; }
+  .wx-lo { opacity: .85; }
+  .badge-soft {
+    background: rgba(255,255,255,.12);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,.2);
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // ---------- helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const setText = (id, text) => { const n = $(id); if (n) n.textContent = text; };
+  const show = (id, on=true) => { const n = $(id); if (n) n.style.display = on ? 'block' : 'none'; };
+
+  // ---------- icon mapping ----------
+  function iconFor(code) {
+    code = Number(code);
+    if (code === 0) return "☀️";
+    if ([1,2].includes(code)) return "🌤️";
+    if (code === 3) return "☁️";
+    if ([45,48].includes(code)) return "🌫️";
+    if ([51,53,55,56,57].includes(code)) return "🌦️";
+    if ([61,63,65,66,67,80,81,82].includes(code)) return "🌧️";
+    if ([71,73,75,77,85,86].includes(code)) return "❄️";
+    if ([95,96,99].includes(code)) return "⛈️";
+    return "🌡️";
+  }
+
+  // ---------- API ----------
+  async function fetchWeather(params) {
+    const res = await fetch(`/api/weather?${new URLSearchParams(params)}`);
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Failed to load weather');
+    return data;
+  }
+
+  // ---------- renderers ----------
+  let wxTZ = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
+  function dayLabel(iso, tz) {
+    // noon avoids off-by-one when crossing timezones
+    const d = new Date(`${iso}T12:00:00`);
+    return d.toLocaleDateString([], { weekday: 'short', timeZone: tz });
+  }
+
+  function renderDaily(daily, tz) {
+    const row = $('weekRow');
+    row.innerHTML = '';
+
+    const times = daily?.time || [];
+    const wcodes = daily?.weathercode || [];
+    const hi = daily?.temperature_2m_max || [];
+    const lo = daily?.temperature_2m_min || [];
+    const pop = daily?.precipitation_probability_max || [];
+    const wind = daily?.wind_speed_10m_max || [];
+
+    for (let i = 0; i < times.length; i++) {
+      const col = document.createElement('div');
+      col.className = 'col-12 col-sm-6 col-lg-3';
+
+      const icon = iconFor(wcodes[i]);
+      const label = dayLabel(times[i], tz);
+
+      col.innerHTML = `
+        <div class="card wx-card shadow-sm h-100">
+          <div class="card-body d-flex flex-column gap-2">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="h6 mb-0">${label}</div>
+              <div class="wx-icon">${icon}</div>
+            </div>
+            <div>
+              <span class="wx-hi">${hi[i] ?? '—'}°F</span>
+              <span class="text-muted"> / </span>
+              <span class="wx-lo">${lo[i] ?? '—'}°F</span>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="badge badge-soft">💨 ${wind[i] ?? '—'} mph</span>
+              <span class="badge badge-soft">☔ ${pop[i] ?? 0}%</span>
+            </div>
+          </div>
+        </div>
+      `;
+      row.appendChild(col);
+    }
+  }
+
+  function renderWeather(data) {
+    show('weatherResult', true);
+    setText('currentTitle', data.resolved_name || 'Your Location');
+    setText('temp', `Temperature: ${data.current.temperature} °F`);
+    setText('wind', `Wind: ${data.current.windspeed} mph`);
+
+    wxTZ = data.timezone || wxTZ;
+    if (data.daily) renderDaily(data.daily, wxTZ);
+  }
+
+  // ---------- actions ----------
+  async function fetchWeatherByQuery() {
+    const q = $('locationInput').value.trim();
+    if (!q) return;
+    try {
+      $('weekRow').innerHTML = '';
+      show('weatherResult', false);
+      setText('currentTitle', 'Loading…');
+      const data = await fetchWeather({ q });
+      renderWeather(data);
+    } catch (e) { alert(e.message); }
+  }
+
+  function fetchWeatherByLocation() {
+    if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        $('weekRow').innerHTML = '';
+        show('weatherResult', false);
+        setText('currentTitle', 'Loading…');
+        const { latitude, longitude } = pos.coords;
+        const data = await fetchWeather({ lat: latitude, lon: longitude });
+        renderWeather(data);
+      } catch (e) { alert(e.message); }
+    }, () => alert('Location unavailable'));
+  }
+
+  // ---------- wire up ----------
+  $('searchBtn')?.addEventListener('click', fetchWeatherByQuery);
+  $('geoBtn')?.addEventListener('click', fetchWeatherByLocation);
+  $('locationInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') fetchWeatherByQuery(); });
+});
+</script>
+
+{% endblock %}
