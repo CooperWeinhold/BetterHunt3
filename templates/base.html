@@ -17,33 +17,53 @@
   <body class="bg-dark text-light">
     <!-- Top Nav -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary">
-      <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">BetterHunt</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">BetterHunt</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+            aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <div class="collapse navbar-collapse" id="nav">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('map_view') }}">Map</a></li>
-            {% if 'seasons' in (globals() if globals else {}) %}{% endif %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('seasons') }}">Seasons</a></li>
-              <li class="nav-item"><a class="nav-link" href="/weather">Weather</a></li>
-              <li class="nav-item"><a class="nav-link" href="{{ url_for('history') }}">History</a></li>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('map_view') }}">Map</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('seasons') }}">Seasons</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('weather_page') }}">Weather</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('history') }}">History</a>
+        </li>
+      </ul>
 
-          </ul>
-          <ul class="navbar-nav ms-auto">
-            {% if session.get('user') %}
-              <li class="nav-item me-2 align-self-center small text-secondary">Hi, {{ session['user']['first_name'] }}!</li>
-              <li class="nav-item"><a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Sign out</a></li>
-            {% else %}
-              <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-              <li class="nav-item"><a class="btn btn-success btn-sm ms-2" href="{{ url_for('register') }}">Create account</a></li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-    </nav>
+      <ul class="navbar-nav ms-auto">
+        {% if current_user.is_authenticated %}
+          <li class="nav-item me-2 align-self-center small text-secondary">
+            Hi, {{ current_user.first_name }} {{ current_user.last_name }}
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">
+              Sign out
+            </a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-success btn-sm ms-2" href="{{ url_for('register') }}">
+              Create account
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
 
     <!-- Flash toasts -->
     <main class="container py-3">
