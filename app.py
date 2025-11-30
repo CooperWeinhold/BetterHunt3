@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, DateField, TimeField
 from wtforms.validators import DataRequired, Length, Email
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
@@ -60,10 +60,26 @@ class Boundary(db.Model):
     coords_json = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class Harvest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
+
+    species = db.Column(db.String(120), nullable=False)
+    gender = db.Column(db.String(20))
+    weapon = db.Column(db.String(120))
+    hunting_unit = db.Column(db.String(50))
+
+    # When the animal was actually tagged
+    harvested_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    # When this record was created in the app
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
 
 
 # ---------------- Forms ----------------
@@ -79,6 +95,15 @@ class RegisterForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=3)])
     submit = SubmitField('Create Account')
+
+class HarvestForm(FlaskForm):
+    date = DateField('Date', validators=[DataRequired()], format='%Y-%m-%d')
+    time = TimeField('Time', validators=[DataRequired()], format='%H:%M')
+    species = StringField('Species', validators=[DataRequired(), Length(max=120)])
+    gender = StringField('Gender', validators=[Length(max=20)])
+    weapon = StringField('Weapon Used', validators=[Length(max=120)])
+    hunting_unit = StringField('Hunting Unit', validators=[Length(max=50)])
+    submit = SubmitField('Add Harvest')
 
 
 # ---------------- Routes ----------------
@@ -114,6 +139,35 @@ def map_view():
         }
     ]
     return render_template('map.html', properties=example_properties)
+
+@app.route('/history', methods=['GET', 'POST'])
+@login_required
+def history():
+    form = HarvestForm()
+    if form.validate_on_submit():
+        # Combine date and time from the form into a single datetime
+        dt = datetime.combine(form.date.data, form.time.data)
+
+        h = Harvest(
+            user_id=current_user.id,
+            species=form.species.data.strip(),
+            gender=(form.gender.data or '').strip(),
+            weapon=(form.weapon.data or '').strip(),
+            hunting_unit=(form.hunting_unit.data or '').strip(),
+            harvested_at=dt,
+        )
+        db.session.add(h)
+        db.session.commit()
+        flash('Harvest added to your history.', 'success')
+        return redirect(url_for('history'))
+
+    # Pull this user’s harvests, newest first
+    harvests = Harvest.query.filter_by(user_id=current_user.id) \
+        .order_by(Harvest.harvested_at.desc()) \
+        .all()
+
+    return render_template('history.html', form=form, harvests=harvests)
+
 
 @app.route('/seasons')
 def seasons():

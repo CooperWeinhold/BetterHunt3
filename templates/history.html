@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <!-- Form column -->
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Log a tagged animal</h5>
+        </div>
+        <div class="card-body">
+          <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.date.label }}</label>
+              {{ form.date(class_='form-control', type='date') }}
+              {% for error in form.date.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.time.label }}</label>
+              {{ form.time(class_='form-control', type='time') }}
+              {% for error in form.time.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.species.label }}</label>
+              {{ form.species(class_='form-control', placeholder='Whitetail deer, pronghorn, duck, etc.') }}
+              {% for error in form.species.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.gender.label }}</label>
+              {{ form.gender(class_='form-control', placeholder='Buck, doe, bull, cow, drake, etc.') }}
+              {% for error in form.gender.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.weapon.label }}</label>
+              {{ form.weapon(class_='form-control', placeholder='Rifle, bow, shotgun, muzzleloader, etc.') }}
+              {% for error in form.weapon.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ form.hunting_unit.label }}</label>
+              {{ form.hunting_unit(class_='form-control', placeholder='e.g., Unit 17, Walk-in #42') }}
+              {% for error in form.hunting_unit.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="d-grid">
+              {{ form.submit(class_='btn btn-success') }}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- History table column -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Harvest history</h5>
+          <span class="badge bg-secondary">{{ harvests|length }} total</span>
+        </div>
+        <div class="card-body p-0">
+          {% if harvests %}
+            <div class="table-responsive">
+              <table class="table table-dark table-striped table-hover mb-0 align-middle">
+                <thead>
+                  <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Species</th>
+                    <th scope="col">Gender</th>
+                    <th scope="col">Weapon</th>
+                    <th scope="col">Unit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for h in harvests %}
+                    <tr>
+                      <td>{{ h.harvested_at.strftime('%Y-%m-%d') }}</td>
+                      <td>{{ h.harvested_at.strftime('%H:%M') }}</td>
+                      <td>{{ h.species }}</td>
+                      <td>{{ h.gender or '-' }}</td>
+                      <td>{{ h.weapon or '-' }}</td>
+                      <td>{{ h.hunting_unit or '-' }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="p-3 text-muted mb-0">
+              You have not logged any tagged animals yet. Use the form on the left to add your first harvest.
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
